@@ -194,11 +194,11 @@
     </div>
     <div class="slider-row">
       <label>🧾 Orders per day, each location <span class="hint" id="ordersHint"></span> <output id="oOrders">160</output></label>
-      <input type="range" id="orders" min="5" max="500" step="5" value="160">
+      <input type="range" id="orders" min="5" max="1000" step="5" value="160">
     </div>
     <div class="slider-row">
       <label>📍 Locations / service stops per day <output id="oLocs">1</output></label>
-      <input type="range" id="locs" min="1" max="4" step="1" value="1">
+      <input type="range" id="locs" min="1" max="10" step="1" value="1">
     </div>
     <div class="slider-row">
       <label>📅 Days open per month <output id="oDays">30</output></label>
@@ -206,11 +206,20 @@
     </div>
     <div class="slider-row">
       <label>💵 Average sale <output id="oPrice">$16.00</output></label>
-      <input type="range" id="price" min="4" max="30" step="0.5" value="16">
+      <input type="range" id="price" min="4" max="75" step="0.5" value="16">
     </div>
     <div class="slider-row">
       <label>💳 Orders paid by card <output id="oCard">90%</output></label>
       <input type="range" id="card" min="50" max="100" step="5" value="90">
+    </div>
+    <div class="slider-row">
+      <label>🖥 Card readers <span class="hint">my price stays flat no matter how many · Clover bills per device</span> <output id="oReaders">1</output></label>
+      <input type="range" id="readers" min="1" max="10" step="1" value="1">
+    </div>
+    <div class="vs">Hardware situation:</div>
+    <div class="types" id="hwToggle">
+      <button class="type active" data-hw="own">✅ Already own Stripe reader(s)</button>
+      <button class="type" data-hw="buy">🛒 Need to buy readers ($349 each)</button>
     </div>
   </div>
 
@@ -221,7 +230,7 @@
         <span class="tag">START FREE</span>
         <h3>Try it free, then flat</h3>
         <div class="price">$0 down · $39/mo</div>
-        <ul class="optlist"><li>First 30 days free — cancel with one email</li><li>No contract, no per-sale skim, ever</li><li>Concierge setup: send your menu, live in an hour</li><li>Never-undersold guarantee, in writing</li></ul>
+        <ul class="optlist"><li>First 30 days free — cancel with one email</li><li>No contract · no per-sale skim · unlimited readers, one flat price</li><li>Concierge setup: send your menu, live in an hour</li><li>Never-undersold guarantee, in writing</li></ul>
         <span class="check">✓</span>
       </div>
       <div class="opt" id="optOwn" data-opt="own">
@@ -264,7 +273,7 @@
   </div>
 
   <div class="card">
-    <div class="cardtitle">📈 Software + card fees over 5 years <span style="font-weight:400; text-transform:none; letter-spacing:0;">(hardware left out — this runs on the reader you already own)</span></div>
+    <div class="cardtitle">📈 Total cost over 5 years <span style="font-weight:400; text-transform:none; letter-spacing:0;">(card fees + software + each option's hardware at your settings)</span></div>
     <svg id="chart" viewBox="0 0 640 300" role="img" aria-label="Cumulative software cost over 5 years"></svg>
     <div class="legend">
       <span style="--c:var(--money)">Margin POS</span><span style="--c:var(--sq)">Square</span>
@@ -286,7 +295,7 @@
     <details id="mathDetails">
       <summary>🧮 The full math — every number, every step</summary>
       <table id="tbl">
-        <thead><tr><th>Option</th><th>Cost per sale</th><th>Monthly fee</th><th>You keep / year</th></tr></thead>
+        <thead><tr><th>Option</th><th>Cost per sale</th><th>Hardware</th><th>Monthly fee</th><th>You keep / year</th></tr></thead>
         <tbody></tbody>
       </table>
       <div class="math" id="math"></div>
@@ -301,6 +310,13 @@
           <li>Clover, <a href="https://www.clover.com/pricing">pricing</a> — 2.6% + 10¢ plus $14.95/mo service plan.</li>
           <li>Toast, <a href="https://pos.toasttab.com/pricing">pricing</a> — pay-as-you-go 3.09% + 15¢.</li>
           <li>Payment-for-Stripe, <a href="https://support.payment.co/hc/en-us/articles/360027107892">support: card-reader rate</a> (+1.0% app fee) and <a href="https://support.payment.co/hc/en-us/articles/360027114252">support: offline requires a Bluetooth reader</a> (no offline on S700/S710).</li>
+        </ul>
+        <h4>Hardware prices (published, June 2026)</h4>
+        <ul class="src">
+          <li>Stripe, <a href="https://stripe.com/terminal">Terminal readers</a> — Stripe Reader S700/S710 $349.</li>
+          <li>Square, <a href="https://squareup.com/us/en/hardware">hardware</a> — Square Terminal $299.</li>
+          <li>Clover, <a href="https://www.clover.com/pricing">pricing</a> — Clover Flex $649; service plan billed per device.</li>
+          <li>Toast, <a href="https://pos.toasttab.com/pricing">pricing</a> — starter hardware $0 on the pay-as-you-go plan (its 3.09% + 15¢ rate is how it's paid for).</li>
         </ul>
         <h4>What custom POS development normally costs</h4>
         <ul class="src">
@@ -323,9 +339,10 @@
 
   <p class="foot">*Payment-for-Stripe is an existing third-party app for Stripe smart readers — per its own support docs its offline
   mode doesn't work on the S700/S710. Shown for price comparison.<br><br>
-  Hardware is deliberately excluded from the math: this app runs on a Stripe Reader S700/S710 you own (~$349 if you don't
-  yet — competitor hardware runs $299–$649+, so leaving it out is generous to them). Built on Stripe's Apps on Devices
-  program; payments settle to your own Stripe account at Stripe's standard published rate. Cash sales cost nothing on any
+  Hardware in the math follows your settings: Margin POS and Payment-for-Stripe run on Stripe Reader S700/S710 ($349 each,
+  $0 if you own them); Square Terminal $299, Clover Flex $649 (plan billed per device), Toast starter hardware $0 on its
+  pay-as-you-go rate. Built on Stripe's Apps on Devices program; payments settle to your own Stripe account at Stripe's
+  standard published rate. Cash sales cost nothing on any
   system. Savings are projections from the numbers you set, not a guarantee of business results; offline-stored payments
   can occasionally decline when they sync (true of every offline POS). The never-undersold guarantee and all terms above
   are confirmed in your service agreement before you pay anything.</p>
@@ -334,14 +351,19 @@
 <button id="miniBar" aria-label="Jump to results">Keeps <b id="mSave">–</b> vs <span id="mVs">Square</span> · <b id="mPb">–</b> ↓</button>
 
 <script>
-const SUB_MO = 39, OWN_ONE = 999;
-const ALTS = {
-  square:{name:'Square',              pct:0.026,  fix:0.15, mo:0,     color:'var(--sq)'},
-  pfs:   {name:'Payment-for-Stripe*', pct:0.037,  fix:0.05, mo:0,     color:'var(--pfs)'},
-  clover:{name:'Clover',              pct:0.026,  fix:0.10, mo:14.95, color:'var(--clv)'},
-  toast: {name:'Toast',               pct:0.0309, fix:0.15, mo:0,     color:'var(--tst)'},
+const SUB_MO = 39, OWN_ONE = 999, STRIPE_READER = 349;
+const ALTS = {   // hw = hardware $ per reader; perDevMo = monthly billed per device
+  square:{name:'Square',              pct:0.026,  fix:0.15, mo:0,     hw:299, perDevMo:false, color:'var(--sq)'},
+  pfs:   {name:'Payment-for-Stripe*', pct:0.037,  fix:0.05, mo:0,     hw:STRIPE_READER, perDevMo:false, color:'var(--pfs)'},
+  clover:{name:'Clover',              pct:0.026,  fix:0.10, mo:14.95, hw:649, perDevMo:true,  color:'var(--clv)'},
+  toast: {name:'Toast',               pct:0.0309, fix:0.15, mo:0,     hw:0,   perDevMo:false, color:'var(--tst)'},
 };
 const OURS = {pct:0.027, fix:0.05};
+let hwOwn = true;
+// upfront hardware: PfS runs on the same Stripe readers we do, so owning them zeroes both
+function ourHwUp(n){ return hwOwn ? 0 : STRIPE_READER*n; }
+function altHwUp(k,n){ return k==='pfs' ? (hwOwn ? 0 : STRIPE_READER*n) : ALTS[k].hw*n; }
+function altMoFee(k,n){ const a=ALTS[k]; return a.perDevMo ? a.mo*n : a.mo; }
 const TYPES = {
   coffeecart:{label:'coffee cart',  orders:80,  locs:1, days:22, price:7.5,  card:90, hint:'typical cart: ~30/day new · ~80 established'},
   foodtruck: {label:'food truck',   orders:110, locs:1, days:24, price:14,   card:90, hint:'typical truck: ~75–150 covers a day'},
@@ -378,10 +400,10 @@ function paintSlider(el){
 }
 function values(){
   return { orders:+$('orders').value, locs:+$('locs').value, days:+$('days').value,
-           price:+$('price').value, card:+$('card').value/100 };
+           price:+$('price').value, card:+$('card').value/100, readers:+$('readers').value };
 }
-// our software cost (excl. standard Stripe processing): sub = $39/mo with month 1 free; own = $999 once
-function ourCostCum(m){ return pricing==='sub' ? SUB_MO*Math.max(0, m-1) : OWN_ONE; }
+// our software cost (excl. standard Stripe processing): sub = $39/mo with month 1 free; own = $999 once — flat, any reader count
+function ourCostCum(m, readers){ return ourHwUp(readers) + (pricing==='sub' ? SUB_MO*Math.max(0, m-1) : OWN_ONE); }
 
 function recalc(){
   const v = values();
@@ -393,22 +415,26 @@ function recalc(){
   $('oCard').textContent = Math.round(v.card*100)+'%';
   $('ordersHint').textContent = TYPES[bizType].hint;
 
+  $('oReaders').textContent = v.readers;
   const alt = ALTS[selected];
   const altName = alt.name.replace('*','');
   const gapStripe = r4(fee(alt,v.price) - fee(OURS,v.price));
-  const altPenaltyMo = gapStripe*vol + alt.mo;            // what the alternative costs extra per month
+  const altMo = altMoFee(selected, v.readers);
+  const altUp = altHwUp(selected, v.readers);
+  const altPenaltyMo = gapStripe*vol + altMo;             // what the alternative costs extra per month
   const moSave = altPenaltyMo - (pricing==='sub' ? SUB_MO : 0);   // steady-state monthly keep
   const yrSave = moSave*12;
-  const ahead5 = altPenaltyMo*60 - ourCostCum(60);
-  const pbMonths = pricing==='sub' ? 0 : (altPenaltyMo>0 ? OWN_ONE/altPenaltyMo : Infinity);
+  const ahead5 = altPenaltyMo*60 + altUp - ourCostCum(60, v.readers);
+  const netExtra = ourCostCum(0, v.readers) - altUp;      // upfront we must recover
+  const pbMonths = netExtra <= 0 ? 0 : (moSave > 0 ? netExtra/moSave : Infinity);
 
   countUp($('save'), yrSave);
   $('saveLbl').textContent = '💰 kept/yr vs ' + altName;
-  if (pricing==='sub'){
-    $('payback').textContent = moSave > 0 ? 'Day 1' : '—';
+  if (pbMonths === 0 && moSave > 0){
+    $('payback').textContent = 'Day 1';
     $('paybackLbl').textContent = '⏱ cheaper from your first sale';
   } else {
-    $('payback').textContent = !isFinite(pbMonths) ? '—'
+    $('payback').textContent = !isFinite(pbMonths) || moSave <= 0 ? '—'
         : pbMonths <= 24 ? Math.max(1,Math.round(pbMonths))+' mo'
         : (pbMonths/12).toFixed(1)+' yrs';
     $('paybackLbl').textContent = "⏱ until it's paid for itself";
@@ -430,15 +456,15 @@ function recalc(){
   const verdict = $('verdict');
   const prevVerdict = verdict.textContent;
   verdict.classList.remove('warn');
-  if (pricing==='sub'){
-    if (moSave > 0) verdict.textContent = 'Cheaper than '+altName+' from day one — and the first month is free. ✅';
-    else { verdict.textContent = 'At this volume the $39 flat beats '+altName+'’s percentages only as you grow — so the never-undersold guarantee applies: I price-beat them anyway.'; verdict.classList.add('warn'); }
-  } else {
-    if (pbMonths <= 3)       verdict.textContent = 'Pays for itself almost immediately vs '+altName+' — then it’s pure margin. ✅';
-    else if (pbMonths <= 12) verdict.textContent = 'Pays for itself in under a year vs '+altName+', then it’s pure margin. ✅';
-    else if (pbMonths <= 36) verdict.textContent = 'Pays for itself in '+(pbMonths/12).toFixed(1)+' years vs '+altName+' — the monthly plan may suit you better.';
-    else { verdict.textContent = 'At this volume, pick the monthly plan instead — $0 down and the guarantee does the work.'; verdict.classList.add('warn'); }
-  }
+  if (moSave <= 0){
+    verdict.textContent = 'At these exact settings '+altName+'’s pricing edges mine out — so the never-undersold guarantee kicks in: I price-beat them anyway, in writing.';
+    verdict.classList.add('warn');
+  } else if (pbMonths === 0){
+    verdict.textContent = 'Cheaper than '+altName+' from day one'+(pricing==='sub'?' — and the first month is free.':' — including the hardware.')+' ✅';
+  } else if (pbMonths <= 3)  verdict.textContent = 'Pays for itself almost immediately vs '+altName+' — then it’s pure margin. ✅';
+  else if (pbMonths <= 12)   verdict.textContent = 'Pays for itself in under a year vs '+altName+', then it’s pure margin. ✅';
+  else if (pbMonths <= 36)   verdict.textContent = 'Pays for itself in '+(pbMonths/12).toFixed(1)+' years vs '+altName+' — the monthly plan may suit you better.';
+  else { verdict.textContent = 'At this volume, pick the monthly plan instead — $0 down and the guarantee does the work.'; verdict.classList.add('warn'); }
   if (verdict.textContent !== prevVerdict && !reduceMotion){
     verdict.classList.remove('swap'); void verdict.offsetWidth; verdict.classList.add('swap');
   }
@@ -449,12 +475,16 @@ function recalc(){
   const mk = (cells, cls) => { const tr=document.createElement('tr'); if(cls)tr.className=cls;
     cells.forEach(c=>{const td=document.createElement('td'); td.textContent=c; tr.appendChild(td);}); tb.appendChild(tr); };
   mk(['Margin POS — '+(pricing==='sub'?'$39/mo flat':'$999 once'), usd(fee(OURS,v.price),2),
+      ourHwUp(v.readers) ? usd(ourHwUp(v.readers)) : '$0 — yours',
       pricing==='sub' ? '$39 (month 1 free)' : '$0', '—'], 'you');
   for (const k of Object.keys(ALTS)){
     const a = ALTS[k];
     const g = r4(fee(a,v.price)-fee(OURS,v.price));
-    const sv = (g*vol + a.mo - (pricing==='sub'?SUB_MO:0))*12;
-    mk([a.name, usd(fee(a,v.price),2), a.mo?usd(a.mo,2):'$0', usd(sv)]);
+    const m = altMoFee(k, v.readers);
+    const sv = (g*vol + m - (pricing==='sub'?SUB_MO:0))*12;
+    mk([a.name, usd(fee(a,v.price),2),
+        altHwUp(k,v.readers) ? usd(altHwUp(k,v.readers)) : '$0',
+        m?usd(m,2):'$0', usd(sv)]);
   }
 
   // full math
@@ -473,33 +503,37 @@ function recalc(){
     const m = g*vol + a.mo - (pricing==='sub'?SUB_MO:0);
     h += '<p><b>vs '+a.name+'</b>: ('+usd(fee(a,v.price),2)+' − '+usd(fee(OURS,v.price),2)+') × '+Math.round(vol)+(a.mo?' + '+usd(a.mo,2)+'/mo':'')+(pricing==='sub'?' − $39':'')+' = <code>'+usd(m,2)+'/mo</code> → <b>'+usd(m*12)+'/yr</b></p>';
   }
+  h += '<h4>Step 4 — hardware at your settings ('+v.readers+' reader'+(v.readers>1?'s':'')+')</h4>'+
+    '<p><b>Margin POS</b>: '+(hwOwn?'<code>$0</code> — runs on the Stripe reader(s) you already own':v.readers+' × $349 = <code>'+usd(ourHwUp(v.readers))+'</code>')+
+    ' &nbsp;·&nbsp; <b>'+alt.name+'</b>: '+(altUp? (selected==='pfs' ? v.readers+' × $349 = ' : v.readers+' × '+usd(ALTS[selected].hw)+' = ')+'<code>'+usd(altUp)+'</code>' : '<code>$0</code>')+
+    (ALTS[selected].perDevMo ? ' (plus '+usd(ALTS[selected].mo,2)+'/mo <i>per device</i> = '+usd(altMo,2)+'/mo)' : '')+'</p>';
   if (pricing==='sub'){
-    h += '<h4>Step 4 — 5-year position vs '+alt.name+'</h4>'+
-      '<p>'+usd(altPenaltyMo,2)+'/mo avoided × 60 − $39 × 59 months (first month free) = <code>'+usd(ahead5)+'</code></p>';
+    h += '<h4>Step 5 — 5-year position vs '+alt.name+'</h4>'+
+      '<p>'+usd(altPenaltyMo,2)+'/mo avoided × 60 + '+usd(altUp)+' their hardware − ($39 × 59 + '+usd(ourHwUp(v.readers))+') = <code>'+usd(ahead5)+'</code></p>';
   } else {
-    h += '<h4>Step 4 — payback &amp; 5-year position vs '+alt.name+'</h4>'+
-      '<p><b>Payback</b> = $999 ÷ '+usd(altPenaltyMo,2)+'/mo = <code>'+(isFinite(pbMonths)?pbMonths.toFixed(1)+' months':'—')+'</code></p>'+
-      '<p><b>After 5 years</b> = '+usd(altPenaltyMo,2)+' × 60 − $999 = <code>'+usd(ahead5)+'</code></p>';
+    h += '<h4>Step 5 — payback &amp; 5-year position vs '+alt.name+'</h4>'+
+      '<p><b>Payback</b> = ($999 + '+usd(ourHwUp(v.readers))+' − '+usd(altUp)+' their hardware) ÷ '+usd(moSave,2)+'/mo = <code>'+(pbMonths===0?'instant':(isFinite(pbMonths)&&moSave>0?pbMonths.toFixed(1)+' months':'—'))+'</code></p>'+
+      '<p><b>After 5 years</b> = '+usd(altPenaltyMo,2)+' × 60 + '+usd(altUp)+' − ($999 + '+usd(ourHwUp(v.readers))+') = <code>'+usd(ahead5)+'</code></p>';
   }
   h += '<h4>The guarantee, precisely</h4>'+
     '<p>If the published all-in cost of a mainstream alternative at YOUR slider settings ever totals less than mine, my price drops to beat it. That clause is written into the service agreement — the math on this page can’t quietly go stale.</p>';
   $('math').innerHTML = h;
 
-  drawChart(vol, v.price);
+  drawChart(vol, v.price, v.readers);
 }
 
-function drawChart(vol, price){
+function drawChart(vol, price, readers){
   const W = Math.max(320, $('chart').clientWidth || 640);
   $('chart').setAttribute('viewBox', '0 0 '+W+' 300');
   const H=300, L=58, R=12, T=16, B=34;
   const months=[...Array(61).keys()];
   const stripeCum = m => fee(OURS,price)*vol*m;
-  const ourPts = months.map(m=>ourCostCum(m)+stripeCum(m));
+  const ourPts = months.map(m=>ourCostCum(m, readers)+stripeCum(m));
   const series = [{k:'ours', color:'var(--money)', w:3.4, pts:ourPts}];
   for (const k of Object.keys(ALTS)){
     const a=ALTS[k];
     series.push({k, color:a.color, w:selected===k?2.4:1.4, faint:selected!==k,
-                 pts:months.map(m=>a.mo*m + fee(a,price)*vol*m)});
+                 pts:months.map(m=>altHwUp(k,readers) + altMoFee(k,readers)*m + fee(a,price)*vol*m)});
   }
   const raw = Math.max(...series.flatMap(s=>s.pts))*1.06 || 1;
   const p10 = Math.pow(10, Math.floor(Math.log10(raw/4)));
@@ -573,11 +607,15 @@ document.querySelectorAll('#chips .chip').forEach(b=>b.addEventListener('click',
   b.classList.add('active'); selected=b.dataset.alt; recalc();
 }));
 let statsSeen = false;
-['orders','locs','days','price','card'].forEach(id=>{
+['orders','locs','days','price','card','readers'].forEach(id=>{
   const el = $(id);
   el.addEventListener('input', ()=>{ statsSeen = true; paintSlider(el); recalc(); });
   paintSlider(el);
 });
+document.querySelectorAll('#hwToggle .type').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#hwToggle .type').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); hwOwn = b.dataset.hw==='own'; recalc();
+}));
 let rT;
 window.addEventListener('resize', ()=>{ clearTimeout(rT); rT = setTimeout(recalc, 150); });
 
