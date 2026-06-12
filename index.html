@@ -232,21 +232,21 @@
         <span class="tag">RISK-FREE START</span>
         <h3>Starter — pay as you sell</h3>
         <div class="price">$0/mo + 0.25%/sale</div>
-        <ul class="optlist"><li>Sell nothing, pay nothing — a $0 month costs $0</li><li>Capped at $59/mo, so growth is never punished</li><li>All features · concierge setup · cancel anytime</li><li>Your bill shows the month Flat would've been cheaper</li></ul>
+        <ul class="optlist"><li>Sell nothing, pay nothing — a $0 month costs $0</li><li>Capped at $69/mo, so growth is never punished</li><li>All features · concierge setup · cancel anytime</li><li>Your bill shows the month Flat would've been cheaper</li></ul>
         <div class="fit" id="fitStart"></div>
         <span class="check">✓</span>
       </div>
       <div class="opt active" id="optFlat" data-opt="flat">
         <span class="tag">RECOMMENDED · ESTABLISHED</span>
         <h3>Flat — one bill, zero markup</h3>
-        <div class="price">$39/mo flat</div>
+        <div class="price">$45/mo flat</div>
         <ul class="optlist"><li>0% markup — exactly Stripe's 2.7% + 5¢, nothing added, ever</li><li>Unlimited readers (Clover charges $14.95/mo per device)</li><li>First month free + 60-day money-back</li><li>Never-undersold: beat any real POS bill by $5/mo, or the month's free</li><li>Priority same-day support — direct to the developer</li></ul>
         <div class="fit" id="fitFlat"></div>
         <span class="check">✓</span>
       </div>
     </div>
     <div class="callout">💡 <b>Why so cheap?</b> Agencies quote custom POS builds at <b>$8,000–$30,000 at the basic end</b>
-      (sources below). One app serving many independents is how this stays at $39/mo — you get software built
+      (sources below). One app serving many independents is how this stays at $45/mo — you get software built
       for businesses like yours at a price built for businesses like yours. Your money settles to <b>your own
       Stripe account</b>; I never touch it.</div>
     <div class="vs">Compare against:</div>
@@ -357,11 +357,11 @@
 <button id="miniBar" aria-label="Jump to results">Keeps <b id="mSave">–</b> vs <span id="mVs">Square</span> · <b id="mPb">–</b> ↓</button>
 
 <script>
-const FLAT_MO = 39, START_PCT = 0.0025, START_CAP = 59, STRIPE_READER = 349;
-// owner view (?owner=1): Meni's per-merchant net. Flat collected by ACH: $39 − 0.7% Billing − 0.8% ACH = $38.41/mo
+const FLAT_MO = 45, START_PCT = 0.0025, START_CAP = 69, STRIPE_READER = 349;
+// owner view (?owner=1): Meni's per-merchant net. Flat collected by ACH: $45 − 0.7% Billing − 0.8% ACH = $44.33/mo
 // (month 1 free); Starter app fee via Connect collects at ~100%. Hosting estimate $2/mo/merchant.
 const ownerMode = new URLSearchParams(location.search).get('owner') === '1';
-const NET_FLAT = 38.41, HOST_MO = 2;
+const NET_FLAT = 44.33, HOST_MO = 2;
 const ALTS = {   // hw = hardware $ per reader; perDevMo = monthly billed per device
   square:{name:'Square',              pct:0.026,  fix:0.15, mo:0,     hw:299, perDevMo:false, color:'var(--sq)'},
   pfs:   {name:'Payment-for-Stripe*', pct:0.037,  fix:0.05, mo:0,     hw:STRIPE_READER, perDevMo:false, color:'var(--pfs)'},
@@ -412,7 +412,7 @@ function values(){
   return { orders:+$('orders').value, locs:+$('locs').value, days:+$('days').value,
            price:+$('price').value, card:+$('card').value/100, readers:+$('readers').value };
 }
-// Starter: 0.25% of card volume, capped $59/mo, $0 floor. Flat: $39/mo, month 1 free. Both flat across readers.
+// Starter: 0.25% of card volume, capped $69/mo, $0 floor. Flat: $45/mo, month 1 free. Both flat across readers.
 function startFeeMo(vol, t){ return Math.min(r4(START_PCT*t)*vol, START_CAP); }
 function ourSoftMo(vol, t){ return pricing==='flat' ? FLAT_MO : startFeeMo(vol, t); }
 function ourCostCum(m, readers, vol, t){
@@ -445,11 +445,11 @@ function recalc(){
 
   // auto-recommendation from the sliders (fit-framed, both totals always shown)
   const V = vol * v.price;                                // monthly card $ volume
-  const recFlat = (START_PCT*V >= 32.5) || (v.price >= 20 && V >= 8000);
+  const recFlat = (START_PCT*V >= 38.5) || (v.price >= 20 && V >= 8000);
   const sFee = startFeeMo(vol, v.price);
   $('fitStart').textContent = '≈ '+usd(sFee, sFee<10?2:0)+'/mo at your numbers' + (!recFlat ? ' · ✦ better for your numbers' : '');
   $('fitStart').classList.toggle('best', !recFlat);
-  $('fitFlat').textContent = '$39/mo at your numbers' + (recFlat ? ' · ✦ better for your numbers' : '');
+  $('fitFlat').textContent = '$45/mo at your numbers' + (recFlat ? ' · ✦ better for your numbers' : '');
   $('fitFlat').classList.toggle('best', recFlat);
 
   countUp($('save'), yrSave);
@@ -471,7 +471,7 @@ function recalc(){
   $('mSave').textContent = usd(Math.max(yrSave,0))+'/yr';
   $('mVs').textContent = altName;
   $('mPb').textContent = $('payback').textContent;
-  const optTxt = pricing==='flat' ? 'Flat — $39/mo (first month free)' : 'Starter — $0/mo + 0.25% per sale';
+  const optTxt = pricing==='flat' ? 'Flat — $45/mo (first month free)' : 'Starter — $0/mo + 0.25% per sale';
   $('ctaChoice').textContent = 'You’re looking at: ' + optTxt + ' · ' + TYPES[bizType].label;
   $('ctaMail').href = 'mailto:menigottesman@gmail.com?subject=' +
       encodeURIComponent('Margin POS for my ' + TYPES[bizType].label + ' — ' + optTxt) +
@@ -498,10 +498,10 @@ function recalc(){
   tb.innerHTML = '';
   const mk = (cells, cls) => { const tr=document.createElement('tr'); if(cls)tr.className=cls;
     cells.forEach(c=>{const td=document.createElement('td'); td.textContent=c; tr.appendChild(td);}); tb.appendChild(tr); };
-  mk(['Margin POS — '+(pricing==='flat'?'Flat ($39/mo)':'Starter (0.25%/sale)'),
+  mk(['Margin POS — '+(pricing==='flat'?'Flat ($45/mo)':'Starter (0.25%/sale)'),
       usd(fee(OURS,v.price) + (pricing==='start'?r4(START_PCT*v.price):0),2),
       ourHwUp(v.readers) ? usd(ourHwUp(v.readers)) : '$0 — yours',
-      pricing==='flat' ? '$39 (month 1 free)' : usd(softMo,2)+' (cap $59)', '—'], 'you');
+      pricing==='flat' ? '$45 (month 1 free)' : usd(softMo,2)+' (cap $69)', '—'], 'you');
   for (const k of Object.keys(ALTS)){
     const a = ALTS[k];
     const g = r4(fee(a,v.price)-fee(OURS,v.price));
@@ -521,7 +521,7 @@ function recalc(){
     const a = ALTS[k];
     h += '<p><b>'+a.name+'</b> = '+(a.pct*100).toFixed(a.pct===0.0309?2:1)+'% × '+usd(v.price,2)+' + '+Math.round(a.fix*100)+'¢ = <code>'+usd(fee(a,v.price),2)+'</code>'+(a.mo?' plus '+usd(a.mo,2)+'/mo':'')+'</p>';
   }
-  h += '<h4>Step 3 — what you keep per year vs each (gap × '+Math.round(vol)+' sales × 12 − my '+(pricing==='flat'?'$39/mo':usd(softMo,2)+'/mo')+')</h4>';
+  h += '<h4>Step 3 — what you keep per year vs each (gap × '+Math.round(vol)+' sales × 12 − my '+(pricing==='flat'?'$45/mo':usd(softMo,2)+'/mo')+')</h4>';
   for (const k of Object.keys(ALTS)){
     const a = ALTS[k];
     const g = r4(fee(a,v.price)-fee(OURS,v.price));
@@ -535,10 +535,10 @@ function recalc(){
     (ALTS[selected].perDevMo ? ' (plus '+usd(ALTS[selected].mo,2)+'/mo <i>per device</i> = '+usd(altMo,2)+'/mo)' : '')+'</p>';
   if (pricing==='start'){
     h += '<h4>Step 5 — my Starter fee, capped</h4>'+
-      '<p>0.25% × '+usd(v.price,2)+' × '+Math.round(vol)+' = '+usd(r4(START_PCT*v.price)*vol,2)+'/mo → charged: <code>'+usd(softMo,2)+'/mo</code> (cap $59 — past the cap you should be on Flat anyway)</p>';
+      '<p>0.25% × '+usd(v.price,2)+' × '+Math.round(vol)+' = '+usd(r4(START_PCT*v.price)*vol,2)+'/mo → charged: <code>'+usd(softMo,2)+'/mo</code> (cap $69 — past the cap you should be on Flat anyway)</p>';
   }
   h += '<h4>Step '+(pricing==='start'?'6':'5')+' — 5-year position vs '+alt.name+'</h4>'+
-    '<p>'+usd(altPenaltyMo,2)+'/mo avoided × 60 + '+usd(altUp)+' their hardware − ('+(pricing==='flat'?'$39 × 59 (first month free)':usd(softMo,2)+' × 60')+' + '+usd(ourHwUp(v.readers))+' hardware) = <code>'+usd(ahead5)+'</code></p>'+
+    '<p>'+usd(altPenaltyMo,2)+'/mo avoided × 60 + '+usd(altUp)+' their hardware − ('+(pricing==='flat'?'$45 × 59 (first month free)':usd(softMo,2)+' × 60')+' + '+usd(ourHwUp(v.readers))+' hardware) = <code>'+usd(ahead5)+'</code></p>'+
     (pbMonths>0 && isFinite(pbMonths) && moSave>0 ? '<p><b>Hardware payback</b> = ('+usd(ourHwUp(v.readers))+' − '+usd(altUp)+' theirs) ÷ '+usd(moSave,2)+'/mo = <code>'+pbMonths.toFixed(1)+' months</code></p>' : '');
   h += '<h4>The guarantee, precisely</h4>'+
     '<p>If the published all-in cost of a mainstream alternative at YOUR slider settings ever totals less than mine, my price drops to beat it. That clause is written into the service agreement — the math on this page can’t quietly go stale.</p>';
@@ -693,7 +693,7 @@ function scrubAt(clientX){
     const net = s.meniPts[m];
     rows += `<text x="${tx}" y="${46 + s.series.length*16 + 4}" text-anchor="${anchor}" font-size="11" stroke="#fffdf8" stroke-width="3" paint-order="stroke">`+
       `<tspan fill="var(--caramel)" font-weight="800">→ I net ≈ ${usd(net)}</tspan>`+
-      `<tspan fill="#6b5c4d" font-size="9.5"> (${pricing==='flat'?'$38.41/mo ACH':'app fee'} − $2/mo hosting)</tspan></text>`;
+      `<tspan fill="#6b5c4d" font-size="9.5"> (${pricing==='flat'?'$44.33/mo ACH':'app fee'} − $2/mo hosting)</tspan></text>`;
   }
   $('scrubRows').innerHTML = rows;
 }
