@@ -358,6 +358,10 @@
 
 <script>
 const FLAT_MO = 39, START_PCT = 0.0025, START_CAP = 59, STRIPE_READER = 349;
+// owner view (?owner=1): Meni's per-merchant net. Flat collected by ACH: $39 − 0.7% Billing − 0.8% ACH = $38.41/mo
+// (month 1 free); Starter app fee via Connect collects at ~100%. Hosting estimate $2/mo/merchant.
+const ownerMode = new URLSearchParams(location.search).get('owner') === '1';
+const NET_FLAT = 38.41, HOST_MO = 2;
 const ALTS = {   // hw = hardware $ per reader; perDevMo = monthly billed per device
   square:{name:'Square',              pct:0.026,  fix:0.15, mo:0,     hw:299, perDevMo:false, color:'var(--sq)'},
   pfs:   {name:'Payment-for-Stripe*', pct:0.037,  fix:0.05, mo:0,     hw:STRIPE_READER, perDevMo:false, color:'var(--pfs)'},
@@ -581,6 +585,9 @@ function drawChart(vol, price, readers){
   }
   const ours = ourPts, alt = series.find(s=>s.k===selected).pts;
   chartState = { W, maxY, ourPts: ours,
+    meniPts: months.map(m => pricing==='flat'
+      ? NET_FLAT*Math.max(0, m-1) - HOST_MO*m
+      : (startFeeMo(vol, price) - HOST_MO)*m),
     series: Object.keys(ALTS).map(k => ({ k, color: ALTS[k].color,
       name: ALTS[k].name.replace('*','').replace('Payment-for-Stripe','Pay-for-Stripe'),
       pts: series.find(s=>s.k===k).pts })) };
@@ -682,6 +689,12 @@ function scrubAt(clientX){
       `<tspan fill="${a.color}">●</tspan><tspan fill="#6b5c4d"> ${a.name} </tspan>`+
       `<tspan fill="${d>=0?'var(--money)':'var(--warn)'}" font-weight="800">${d>=0?'+':'−'}${usd(Math.abs(d))}</tspan></text>`;
   });
+  if (ownerMode && s.meniPts){
+    const net = s.meniPts[m];
+    rows += `<text x="${tx}" y="${46 + s.series.length*16 + 4}" text-anchor="${anchor}" font-size="11" stroke="#fffdf8" stroke-width="3" paint-order="stroke">`+
+      `<tspan fill="var(--caramel)" font-weight="800">→ I net ≈ ${usd(net)}</tspan>`+
+      `<tspan fill="#6b5c4d" font-size="9.5"> (${pricing==='flat'?'$38.41/mo ACH':'app fee'} − $2/mo hosting)</tspan></text>`;
+  }
   $('scrubRows').innerHTML = rows;
 }
 chartEl.addEventListener('pointermove', e => scrubAt(e.clientX));
