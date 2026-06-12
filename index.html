@@ -580,7 +580,10 @@ function drawChart(vol, price, readers){
     g += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${s.w}" opacity="${s.faint?0.3:1}" stroke-linecap="round"/>`;
   }
   const ours = ourPts, alt = series.find(s=>s.k===selected).pts;
-  chartState = { W, maxY, ourPts: ours, altPts: alt, altName: ALTS[selected].name.replace('*',''), altColor: ALTS[selected].color };
+  chartState = { W, maxY, ourPts: ours,
+    series: Object.keys(ALTS).map(k => ({ k, color: ALTS[k].color,
+      name: ALTS[k].name.replace('*','').replace('Payment-for-Stripe','Pay-for-Stripe'),
+      pts: series.find(s=>s.k===k).pts })) };
   let cross = -1;
   for (let m=1;m<=60;m++) if (ours[m] <= alt[m]) { cross=m; break; }
   if (cross > 0){
@@ -597,10 +600,10 @@ function drawChart(vol, price, readers){
   }
   g += `<g id="scrub" style="display:none; pointer-events:none">`+
        `<line id="scrubLine" y1="${T}" y2="${H-B}" stroke="var(--coffee)" stroke-width="1.5" stroke-dasharray="4 3"/>`+
+       Object.keys(ALTS).map(k=>`<circle id="scrubDot_${k}" r="4" fill="${ALTS[k].color}" stroke="#fff" stroke-width="1.5"/>`).join('')+
        `<circle id="scrubOur" r="5" fill="var(--money)" stroke="#fff" stroke-width="2"/>`+
-       `<circle id="scrubAlt" r="5" fill="${ALTS[selected].color}" stroke="#fff" stroke-width="2"/>`+
-       `<text id="scrubT1" font-size="12.5" font-weight="800" fill="var(--money)" stroke="#fffdf8" stroke-width="3.5" paint-order="stroke"></text>`+
-       `<text id="scrubT2" font-size="10.5" fill="#8a7665" stroke="#fffdf8" stroke-width="3" paint-order="stroke"></text>`+
+       `<text id="scrubH" font-size="12.5" font-weight="800" fill="var(--espresso)" stroke="#fffdf8" stroke-width="3.5" paint-order="stroke"></text>`+
+       `<g id="scrubRows"></g>`+
        `</g>`;
   $('chart').innerHTML = g;
   if (!chartDrawn && !reduceMotion){
@@ -659,21 +662,27 @@ function scrubAt(clientX){
   const m = Math.max(0, Math.min(60, Math.round((px - L) / (s.W - L - R) * 60)));
   const x = L + (s.W - L - R) * m / 60;
   const Y = c => T + (H - T - B) * (1 - c / s.maxY);
-  const kept = s.altPts[m] - s.ourPts[m];
   const gEl = $('scrub'); if (!gEl) return;
   gEl.style.display = '';
   $('scrubLine').setAttribute('x1', x); $('scrubLine').setAttribute('x2', x);
   $('scrubOur').setAttribute('cx', x); $('scrubOur').setAttribute('cy', Y(s.ourPts[m]));
-  $('scrubAlt').setAttribute('cx', x); $('scrubAlt').setAttribute('cy', Y(s.altPts[m]));
   const flip = x > s.W * 0.55;
   const tx = flip ? x - 10 : x + 10;
   const anchor = flip ? 'end' : 'start';
   const label = m === 0 ? 'Day 1' : (m % 12 === 0 ? 'Year ' + m/12 : 'Month ' + m);
-  const t1 = $('scrubT1'), t2 = $('scrubT2');
-  t1.setAttribute('x', tx); t1.setAttribute('text-anchor', anchor); t1.setAttribute('y', 32);
-  t1.textContent = label + ': ' + usd(Math.abs(kept)) + (kept >= 0 ? ' kept' : ' behind');
-  t2.setAttribute('x', tx); t2.setAttribute('text-anchor', anchor); t2.setAttribute('y', 48);
-  t2.textContent = 'you ' + usd(s.ourPts[m]) + ' · ' + s.altName + ' ' + usd(s.altPts[m]);
+  const h = $('scrubH');
+  h.setAttribute('x', tx); h.setAttribute('text-anchor', anchor); h.setAttribute('y', 28);
+  h.textContent = label + ' — your total ' + usd(s.ourPts[m]);
+  let rows = '';
+  s.series.forEach((a, i) => {
+    const dot = $('scrubDot_'+a.k);
+    dot.setAttribute('cx', x); dot.setAttribute('cy', Y(a.pts[m]));
+    const d = a.pts[m] - s.ourPts[m];
+    rows += `<text x="${tx}" y="${46 + i*16}" text-anchor="${anchor}" font-size="11" stroke="#fffdf8" stroke-width="3" paint-order="stroke">`+
+      `<tspan fill="${a.color}">●</tspan><tspan fill="#6b5c4d"> ${a.name} </tspan>`+
+      `<tspan fill="${d>=0?'var(--money)':'var(--warn)'}" font-weight="800">${d>=0?'+':'−'}${usd(Math.abs(d))}</tspan></text>`;
+  });
+  $('scrubRows').innerHTML = rows;
 }
 chartEl.addEventListener('pointermove', e => scrubAt(e.clientX));
 chartEl.addEventListener('pointerdown', e => scrubAt(e.clientX));
