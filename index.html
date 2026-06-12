@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#3e2b23">
+<title>Margin POS — keep what your POS is skimming</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍽️</text></svg>">
+<style>
+  :root{
+    --espresso:#3e2b23; --coffee:#6f4e37; --roast:#4b3026; --caramel:#c98a4b; --crema:#e9d8c2;
+    --cream:#faf4ea; --card:#fffdf8; --line:#e8dccb; --muted:#8a7665;
+    --money:#2e7d32; --money-soft:#edf5ea; --warn:#b35900; --warn-soft:#f9eede;
+    --sq:#4078c0; --pfs:#b08800; --clv:#a04040; --tst:#998b7d;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       background:var(--cream); color:var(--espresso); line-height:1.45; padding:16px;
+       background-image:radial-gradient(var(--crema) 0.8px, transparent 0.8px); background-size:26px 26px;}
+  .wrap{max-width:680px; margin:0 auto;}
+  .hero{background:linear-gradient(135deg,var(--roast),var(--coffee) 45%,#8a6243 75%,var(--roast));
+        background-size:220% 220%; animation:heroShift 18s ease-in-out infinite alternate;
+        border-radius:20px; padding:30px 24px 26px; text-align:center; color:var(--cream);
+        box-shadow:0 8px 26px rgba(62,43,35,.25); margin-bottom:16px; position:relative; overflow:hidden;}
+  @keyframes heroShift{0%{background-position:0% 0%;} 100%{background-position:100% 100%;}}
+  .hero .eyebrow,.hero h1,.hero p,.hero .sig{opacity:0; animation:rise .7s ease forwards;}
+  .hero .eyebrow{animation-delay:.15s;} .hero h1{animation-delay:.3s;}
+  .hero p{animation-delay:.45s;} .hero .sig{animation-delay:.65s;}
+  @keyframes rise{from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:none;}}
+  .hero .eyebrow{font-size:12.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--crema); opacity:.85;}
+  .hero h1{font-size:clamp(27px,6.2vw,40px); margin:8px 0 6px; color:#fff; line-height:1.15;}
+  .hero h1, .cta h2, .hero .sig{font-family:'Iowan Old Style','Palatino Nova',Palatino,Georgia,'Times New Roman',serif;
+       font-weight:600; letter-spacing:.005em;}
+  .hero p{font-size:14.5px; color:var(--crema); max-width:500px; margin:0 auto;}
+  .hero .sig{margin-top:12px; font-size:13.5px; color:#fff; font-style:italic; opacity:.95;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:16px;
+        padding:16px; margin-bottom:14px; box-shadow:0 2px 6px rgba(111,78,55,.07);
+        transition:box-shadow .2s, opacity .55s ease, transform .55s ease;}
+  .card.pre,.cta.pre{opacity:0; transform:translateY(16px);}
+  @media (hover:hover){
+    .card:hover{box-shadow:0 4px 14px rgba(111,78,55,.12);}
+    .opt:hover{transform:translateY(-2px); box-shadow:0 6px 16px rgba(111,78,55,.14);}
+    .chip:hover{border-color:var(--caramel);}
+  }
+  .opt,.chip,summary,#miniBar{-webkit-tap-highlight-color:transparent;}
+  .opt:active{transform:scale(.985); transition:transform .1s;}
+  .cta{transition:opacity .55s ease, transform .55s ease;}
+  .cardtitle{font-size:13px; font-weight:700; color:var(--coffee); text-transform:uppercase;
+             letter-spacing:.05em; margin-bottom:10px;}
+  .cardtitle small{font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted);}
+  .slider-row{margin:16px 0 4px;}
+  .slider-row label{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; font-size:14.5px; font-weight:600; margin-bottom:6px; gap:4px 8px;}
+  .slider-row label output{color:var(--coffee); font-variant-numeric:tabular-nums; font-size:14px;
+       background:var(--crema); border-radius:999px; padding:3px 12px; font-weight:700; white-space:nowrap;
+       order:2; margin-left:auto;}
+  .slider-row .hint{font-weight:400; color:var(--muted); font-size:12px; order:3; flex:1 0 100%; margin-top:2px;}
+  input[type=range]{width:100%; -webkit-appearance:none; appearance:none; height:36px; padding:14px 0; margin:0;
+       border-radius:99px; background-color:transparent;
+       background-image:linear-gradient(90deg, var(--coffee) 0%, #e2d4bf 0%);
+       background-clip:content-box; cursor:pointer; touch-action:manipulation;}
+  input[type=range]::-webkit-slider-runnable-track{height:8px; border-radius:99px;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:24px; height:24px; border-radius:50%;
+       margin-top:-8px; background:var(--coffee); border:3px solid #fff; box-shadow:0 1px 5px rgba(62,43,35,.4);
+       transition:box-shadow .15s, transform .15s;}
+  input[type=range]:active::-webkit-slider-thumb{box-shadow:0 0 0 7px rgba(111,78,55,.15); transform:scale(1.08);}
+  input[type=range]::-moz-range-thumb{width:18px; height:18px; border-radius:50%; background:var(--coffee);
+       border:3px solid #fff; box-shadow:0 1px 5px rgba(62,43,35,.4);}
+  input[type=range]:focus-visible{outline:3px solid var(--caramel); outline-offset:3px;}
+  .types{display:flex; gap:8px; flex-wrap:wrap;}
+  .type{border:1.5px solid var(--line); background:#fff; border-radius:12px; padding:9px 13px;
+        font-size:13.5px; cursor:pointer; transition:.15s; color:var(--espresso); min-height:44px;
+        touch-action:manipulation; -webkit-tap-highlight-color:transparent;}
+  .type.active{border-color:var(--coffee); background:var(--crema); font-weight:700;}
+  .options{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  @media(max-width:480px){
+    .options{grid-template-columns:1fr; gap:18px;}
+    .stats{grid-template-columns:1fr 1fr;}
+    .stat:first-child{grid-column:1/-1;}
+    .stat:first-child .big{font-size:30px;}
+  }
+  .opt{border:2px solid var(--line); border-radius:14px; padding:14px 14px 34px; cursor:pointer; transition:.18s; background:#fff; position:relative;}
+  .opt.active{border-color:var(--coffee); background:var(--crema);}
+  .opt .check{position:absolute; bottom:10px; right:10px; width:22px; height:22px; border-radius:50%;
+       background:#fff; border:2px solid var(--line); color:transparent; font-size:13px; line-height:18px;
+       text-align:center; transition:.2s;}
+  .opt.active .check{background:var(--money); border-color:var(--money); color:#fff;}
+  .opt .tag{position:absolute; top:-9px; right:10px; background:var(--caramel); color:#fff;
+            font-size:10.5px; font-weight:700; border-radius:999px; padding:2px 9px; letter-spacing:.03em;
+            box-shadow:0 2px 6px rgba(62,43,35,.25);}
+  .opt h3{font-size:15px; color:var(--coffee);}
+  .opt .price{font-size:21px; font-weight:800; color:var(--money); margin:3px 0; font-variant-numeric:tabular-nums;}
+  .optlist{list-style:none; margin-top:5px;}
+  .optlist li{position:relative; padding-left:16px; font-size:12px; color:var(--muted); margin:3px 0;}
+  .optlist li::before{content:"✓"; position:absolute; left:0; color:var(--money); font-weight:700;}
+  .gx{display:grid; grid-template-columns:1fr 1fr; gap:6px 14px; margin-top:4px;}
+  @media(max-width:480px){.gx{grid-template-columns:1fr;}}
+  .gx div{position:relative; padding-left:20px; font-size:13px;}
+  .gx div::before{content:"✓"; position:absolute; left:0; color:var(--money); font-weight:800;}
+  .callout{background:var(--crema); border-left:4px solid var(--caramel); border-radius:10px;
+           padding:11px 13px; font-size:12.5px; color:var(--espresso); margin-top:12px;}
+  .callout b{color:var(--coffee);}
+  .vs{font-size:13px; color:var(--muted); margin:14px 0 8px;}
+  .chips{display:flex; gap:8px; flex-wrap:wrap;}
+  .chip{border:1.5px solid var(--line); background:#fff; border-radius:999px; padding:11px 16px;
+        min-height:44px; font-size:14px; cursor:pointer; transition:.15s; color:var(--espresso);
+        touch-action:manipulation;}
+  .chip:active{transform:scale(.94);}
+  .chip.active{border-color:var(--coffee); background:var(--coffee); color:#fff; font-weight:600;}
+  .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px;}
+  .stat{background:var(--money-soft); border-radius:14px; padding:13px 8px; text-align:center;}
+  .stat .big{font-size:clamp(17px,4.4vw,24px); font-weight:800; color:var(--money); font-variant-numeric:tabular-nums;}
+  .stat .big.pop{animation:pop .35s ease-out;}
+  @keyframes pop{0%{transform:scale(.9); opacity:.5;} 100%{transform:scale(1); opacity:1;}}
+  .stat .lbl{font-size:11.5px; color:var(--muted); margin-top:4px;}
+  .stat.neg .big{color:var(--warn);}
+  .stat.neg{background:var(--warn-soft);}
+  #verdict{text-align:center; font-size:14.5px; margin-top:13px; font-weight:600; color:var(--espresso);
+           background:var(--crema); border-radius:14px; padding:9px 16px;}
+  #verdict.warn{color:var(--warn); background:var(--warn-soft);}
+  #verdict.swap{animation:verdictIn .4s ease;}
+  @keyframes verdictIn{from{opacity:0; transform:translateY(5px);} to{opacity:1; transform:none;}}
+  #miniBar{position:fixed; left:50%; bottom:calc(14px + env(safe-area-inset-bottom)); transform:translate(-50%,140%); z-index:50;
+       background:var(--roast); color:var(--cream); border-radius:999px; padding:10px 18px;
+       box-shadow:0 8px 24px rgba(62,43,35,.35); display:flex; gap:8px; align-items:center;
+       font-size:13px; white-space:nowrap; cursor:pointer; border:none;
+       transition:transform .4s cubic-bezier(.34,1.56,.64,1);}
+  #miniBar b{color:#fff; font-variant-numeric:tabular-nums;}
+  #miniBar.show{transform:translate(-50%,0);}
+  .steps{counter-reset:s; margin-top:4px;}
+  .steps div{position:relative; padding:8px 0 8px 44px; font-size:13.5px;}
+  .steps div::before{counter-increment:s; content:counter(s); position:absolute; left:0; top:6px;
+       width:30px; height:30px; border-radius:50%; background:var(--crema); color:var(--coffee);
+       font-weight:800; text-align:center; line-height:30px;}
+  .steps b{color:var(--coffee);}
+  svg{width:100%; height:auto; display:block;}
+  table{width:100%; border-collapse:separate; border-spacing:0; font-size:13px; margin-top:10px;}
+  th,td{padding:7px 6px; text-align:left; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums;}
+  th{color:var(--muted); font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;}
+  th:nth-child(n+2),td:nth-child(n+2){text-align:right;}
+  .you td{background:var(--money-soft); font-weight:700; color:var(--money); border-bottom-color:transparent;}
+  details{margin-top:4px;}
+  summary{cursor:pointer; font-weight:700; font-size:14.5px; color:var(--coffee); padding:8px 0;
+       list-style:none; display:flex; justify-content:space-between; align-items:center; gap:8px;}
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:"▾"; color:var(--caramel); font-size:16px; flex-shrink:0; transition:transform .25s ease;}
+  details[open] summary::after{transform:rotate(180deg);}
+  .math{font-size:13px; background:var(--cream); border-radius:12px; padding:13px; margin-top:8px;}
+  .math p{margin:6px 0; font-variant-numeric:tabular-nums;}
+  .math h4{font-size:13.5px; margin:12px 0 3px; color:var(--coffee);}
+  .math code{background:#fff; border:1px solid var(--line); border-radius:6px; padding:1px 5px; font-size:12px;}
+  .src{font-size:12px; color:var(--muted); margin:6px 0 10px 0; padding-left:14px;}
+  .src li{margin:3px 0;}
+  .src a{color:var(--coffee);}
+  .cta{background:linear-gradient(135deg,var(--coffee),#8a6243); color:var(--cream); text-align:center;
+       border-radius:18px; padding:22px 18px; margin-bottom:14px; box-shadow:0 6px 18px rgba(62,43,35,.2);}
+  .cta h2{color:#fff; font-size:20px; margin-bottom:6px;}
+  .cta p{font-size:14px;}
+  .ctabtn{display:inline-block; margin-top:12px; background:var(--cream); color:var(--coffee); font-weight:800;
+       text-decoration:none; padding:13px 26px; border-radius:999px; box-shadow:0 4px 12px rgba(0,0,0,.2);
+       -webkit-tap-highlight-color:transparent;}
+  .ctabtn:active{transform:translateY(1px);}
+  .foot{font-size:11.5px; color:var(--muted); margin:10px 4px 30px; padding-bottom:64px;}
+  .legend{display:flex; gap:12px; flex-wrap:wrap; font-size:12px; color:var(--muted); margin-top:6px; justify-content:center;}
+  .legend span::before{content:""; display:inline-block; width:14px; height:3px; border-radius:2px;
+                       margin-right:5px; vertical-align:middle; background:var(--c);}
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation:none !important; transition:none !important;}
+    .hero .eyebrow,.hero h1,.hero p,.hero .sig{opacity:1;}
+    .card.pre,.cta.pre{opacity:1; transform:none;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">Margin POS · runs on the Stripe reader you already own</div>
+    <h1 id="heroH1">Your POS is skimming you.</h1>
+    <p>Every tap, someone takes a cut on top of the card fee. This one doesn't. Pick your business,
+       set the sliders to your real numbers, and see what stays in your pocket — every formula shown,
+       every rate cited, nothing hidden.</p>
+    <div class="sig">— Meni, the developer (you'll have my number)</div>
+  </div>
+
+  <div class="card">
+    <div class="cardtitle">🍽 What do you run? <small>presets are typical starting points — every number below is yours to change</small></div>
+    <div class="types" id="types">
+      <button class="type" data-t="coffeecart">☕ Coffee cart</button>
+      <button class="type" data-t="foodtruck">🚚 Food truck</button>
+      <button class="type" data-t="stall">🧺 Market stall</button>
+      <button class="type" data-t="kiosk">🥤 Kiosk / stand</button>
+      <button class="type" data-t="cafe">🥐 Café</button>
+      <button class="type active" data-t="restaurant">🍔 Counter-service restaurant</button>
+    </div>
+    <div class="slider-row">
+      <label>🧾 Orders per day, each location <span class="hint" id="ordersHint"></span> <output id="oOrders">160</output></label>
+      <input type="range" id="orders" min="5" max="500" step="5" value="160">
+    </div>
+    <div class="slider-row">
+      <label>📍 Locations / service stops per day <output id="oLocs">1</output></label>
+      <input type="range" id="locs" min="1" max="4" step="1" value="1">
+    </div>
+    <div class="slider-row">
+      <label>📅 Days open per month <output id="oDays">30</output></label>
+      <input type="range" id="days" min="4" max="31" step="1" value="30">
+    </div>
+    <div class="slider-row">
+      <label>💵 Average sale <output id="oPrice">$16.00</output></label>
+      <input type="range" id="price" min="4" max="30" step="0.5" value="16">
+    </div>
+    <div class="slider-row">
+      <label>💳 Orders paid by card <output id="oCard">90%</output></label>
+      <input type="range" id="card" min="50" max="100" step="5" value="90">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="cardtitle">🤝 Two ways in — both risk-free</div>
+    <div class="options">
+      <div class="opt active" id="optSub" data-opt="sub">
+        <span class="tag">START FREE</span>
+        <h3>Try it free, then flat</h3>
+        <div class="price">$0 down · $39/mo</div>
+        <ul class="optlist"><li>First 30 days free — cancel with one email</li><li>No contract, no per-sale skim, ever</li><li>Concierge setup: send your menu, live in an hour</li><li>Never-undersold guarantee, in writing</li></ul>
+        <span class="check">✓</span>
+      </div>
+      <div class="opt" id="optOwn" data-opt="own">
+        <span class="tag">NO SUBSCRIPTIONS</span>
+        <h3>Own it outright</h3>
+        <div class="price">$999 once</div>
+        <ul class="optlist"><li>$0/month forever — the app is yours</li><li>Setup + 90 days of support included</li><li>30-day full refund if you're not happy</li><li>Same never-undersold guarantee</li></ul>
+        <span class="check">✓</span>
+      </div>
+    </div>
+    <div class="callout">💡 <b>Why so cheap?</b> Agencies quote custom POS builds at <b>$8,000–$30,000 at the basic end</b>
+      (sources below). One app serving many independents is how this stays at $39/mo — you get software built
+      for businesses like yours at a price built for businesses like yours. Your money settles to <b>your own
+      Stripe account</b>; I never touch it.</div>
+    <div class="vs">Compare against:</div>
+    <div class="chips" id="chips">
+      <button class="chip active" data-alt="square">Square</button>
+      <button class="chip" data-alt="pfs">Payment-for-Stripe*</button>
+      <button class="chip" data-alt="clover">Clover</button>
+      <button class="chip" data-alt="toast">Toast</button>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="big" id="save">–</div><div class="lbl" id="saveLbl">💰 kept per year</div></div>
+      <div class="stat" id="sPayCard"><div class="big" id="payback">–</div><div class="lbl" id="paybackLbl">⏱ until it's paid for itself</div></div>
+      <div class="stat" id="sAheadCard"><div class="big" id="ahead">–</div><div class="lbl" id="aheadLbl">📈 ahead after 5 years</div></div>
+    </div>
+    <div id="verdict"></div>
+  </div>
+
+  <div class="card">
+    <div class="cardtitle">🛡 The risk-free promise — all of it in writing</div>
+    <div class="gx">
+      <div><b>Never undersold:</b> if any mainstream POS would total less at your volume, my price drops to beat it</div>
+      <div><b>First month free</b> on the monthly plan — judge it on a real month of service</div>
+      <div><b>No contract:</b> cancel anytime with one email, no exit fees</div>
+      <div><b>Your Stripe account:</b> sales settle directly to you — I can't touch your money</div>
+      <div><b>Your data:</b> every report exports to CSV, always</div>
+      <div><b>A human:</b> direct line to the developer — no ticket queue, no chatbot</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="cardtitle">📈 Software + card fees over 5 years <span style="font-weight:400; text-transform:none; letter-spacing:0;">(hardware left out — this runs on the reader you already own)</span></div>
+    <svg id="chart" viewBox="0 0 640 300" role="img" aria-label="Cumulative software cost over 5 years"></svg>
+    <div class="legend">
+      <span style="--c:var(--money)">Margin POS</span><span style="--c:var(--sq)">Square</span>
+      <span style="--c:var(--pfs)">Payment-for-Stripe*</span><span style="--c:var(--clv)">Clover</span>
+      <span style="--c:var(--tst)">Toast</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="cardtitle">🔁 Switching is an afternoon, not a project</div>
+    <div class="steps">
+      <div><b>Send me your menu</b> — a photo of it is fine. I build your screens, your modifiers, your taxes.</div>
+      <div><b>One tap to install</b> on your Stripe reader — your old system keeps working until you're ready, so there's zero downtime risk.</div>
+      <div><b>Pour, serve, sell.</b> Offline keeps working in dead zones; the day's numbers land in your inbox at close.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <details id="mathDetails">
+      <summary>🧮 The full math — every number, every step</summary>
+      <table id="tbl">
+        <thead><tr><th>Option</th><th>Cost per sale</th><th>Monthly fee</th><th>You keep / year</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="math" id="math"></div>
+    </details>
+    <details>
+      <summary>📚 Sources for the rates &amp; claims</summary>
+      <div class="math">
+        <h4>Processing rates (published, June 2026)</h4>
+        <ul class="src">
+          <li>Stripe, <a href="https://stripe.com/pricing">pricing</a> — in-person 2.7% + 5¢ (what this app pays; zero markup added).</li>
+          <li>Square, <a href="https://squareup.com/us/en/pricing">pricing</a> — in-person 2.6% + 15¢ on the free plan.</li>
+          <li>Clover, <a href="https://www.clover.com/pricing">pricing</a> — 2.6% + 10¢ plus $14.95/mo service plan.</li>
+          <li>Toast, <a href="https://pos.toasttab.com/pricing">pricing</a> — pay-as-you-go 3.09% + 15¢.</li>
+          <li>Payment-for-Stripe, <a href="https://support.payment.co/hc/en-us/articles/360027107892">support: card-reader rate</a> (+1.0% app fee) and <a href="https://support.payment.co/hc/en-us/articles/360027114252">support: offline requires a Bluetooth reader</a> (no offline on S700/S710).</li>
+        </ul>
+        <h4>What custom POS development normally costs</h4>
+        <ul class="src">
+          <li>Dev Technosys (2026), <a href="https://devtechnosys.com/insights/pos-software-development-cost/">POS software development cost</a> — MVP $8,000–$12,000+; overall $8k–$30k+.</li>
+          <li>Netclues (2025), <a href="https://www.netclues.com/blog/pos-software-development-cost-2025">The real cost of POS software development</a> — basic POS app $15,000–$30,000; enterprise $80,000–$150,000+.</li>
+          <li>Crest Infosystems, <a href="https://www.crestinfosystems.com/cost-pos-software-development/">Cost of POS software development</a> — basic $30,000–$50,000.</li>
+        </ul>
+        <p style="font-size:12px; color:var(--muted);">Business-type presets are editable ballparks for convenience, not benchmarks — the math always uses whatever you set the sliders to.</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="cta">
+    <h2>Keep your margins. ☕🍔🥤</h2>
+    <p>First month's free, setup is on me, and if any alternative would really cost you less, I'll beat it.
+       You have nothing to lose except the skim.</p>
+    <p id="ctaChoice" style="font-size:13px; opacity:.92; margin-top:6px;"></p>
+    <a id="ctaMail" class="ctabtn" href="mailto:menigottesman@gmail.com">Get my free month →</a>
+  </div>
+
+  <p class="foot">*Payment-for-Stripe is an existing third-party app for Stripe smart readers — per its own support docs its offline
+  mode doesn't work on the S700/S710. Shown for price comparison.<br><br>
+  Hardware is deliberately excluded from the math: this app runs on a Stripe Reader S700/S710 you own (~$349 if you don't
+  yet — competitor hardware runs $299–$649+, so leaving it out is generous to them). Built on Stripe's Apps on Devices
+  program; payments settle to your own Stripe account at Stripe's standard published rate. Cash sales cost nothing on any
+  system. Savings are projections from the numbers you set, not a guarantee of business results; offline-stored payments
+  can occasionally decline when they sync (true of every offline POS). The never-undersold guarantee and all terms above
+  are confirmed in your service agreement before you pay anything.</p>
+</div>
+
+<button id="miniBar" aria-label="Jump to results">Keeps <b id="mSave">–</b> vs <span id="mVs">Square</span> · <b id="mPb">–</b> ↓</button>
+
+<script>
+const SUB_MO = 39, OWN_ONE = 999;
+const ALTS = {
+  square:{name:'Square',              pct:0.026,  fix:0.15, mo:0,     color:'var(--sq)'},
+  pfs:   {name:'Payment-for-Stripe*', pct:0.037,  fix:0.05, mo:0,     color:'var(--pfs)'},
+  clover:{name:'Clover',              pct:0.026,  fix:0.10, mo:14.95, color:'var(--clv)'},
+  toast: {name:'Toast',               pct:0.0309, fix:0.15, mo:0,     color:'var(--tst)'},
+};
+const OURS = {pct:0.027, fix:0.05};
+const TYPES = {
+  coffeecart:{label:'coffee cart',  orders:80,  locs:1, days:22, price:7.5,  card:90, hint:'typical cart: ~30/day new · ~80 established'},
+  foodtruck: {label:'food truck',   orders:110, locs:1, days:24, price:14,   card:90, hint:'typical truck: ~75–150 covers a day'},
+  stall:     {label:'market stall', orders:70,  locs:1, days:10, price:12,   card:85, hint:'weekend markets: ~8–12 service days a month'},
+  kiosk:     {label:'kiosk',        orders:130, locs:1, days:30, price:10,   card:95, hint:'typical kiosk: ~100–200/day'},
+  cafe:      {label:'café',         orders:150, locs:1, days:30, price:8.5,  card:90, hint:'typical café: ~120–250/day'},
+  restaurant:{label:'counter-service restaurant', orders:160, locs:1, days:30, price:16, card:90, hint:'typical counter service: ~120–250 covers/day'},
+};
+const $ = id => document.getElementById(id);
+let selected = 'square', pricing = 'sub', bizType = 'restaurant';
+
+const fee = (o,t) => o.pct*t + o.fix;
+const r4  = x => Math.round(x*10000)/10000;
+const usd = (x,d=0) => (x<0?'-':'') + '$' + Math.abs(x).toLocaleString('en-US',{maximumFractionDigits:d,minimumFractionDigits:d});
+const pop = id => { const el=$(id); el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); };
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let chartDrawn = false;
+
+function countUp(el, to){
+  const from = +el.dataset.v || 0; el.dataset.v = to;
+  if (reduceMotion || Math.abs(to - from) < 1){ el.textContent = usd(to); return; }
+  const t0 = performance.now(), dur = 450;
+  const step = now => {
+    const k = Math.min((now - t0) / dur, 1), e = 1 - Math.pow(1 - k, 3);
+    el.textContent = usd(from + (to - from) * e);
+    if (k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+  setTimeout(()=>{ if (+el.dataset.v === to) el.textContent = usd(to); }, dur + 120);
+}
+function paintSlider(el){
+  const pct = (el.value - el.min) / (el.max - el.min) * 100;
+  el.style.backgroundImage = `linear-gradient(90deg, var(--coffee) ${pct}%, #e2d4bf ${pct}%)`;
+}
+function values(){
+  return { orders:+$('orders').value, locs:+$('locs').value, days:+$('days').value,
+           price:+$('price').value, card:+$('card').value/100 };
+}
+// our software cost (excl. standard Stripe processing): sub = $39/mo with month 1 free; own = $999 once
+function ourCostCum(m){ return pricing==='sub' ? SUB_MO*Math.max(0, m-1) : OWN_ONE; }
+
+function recalc(){
+  const v = values();
+  const vol = v.orders * v.locs * v.days * v.card;
+  $('oOrders').textContent = v.orders;
+  $('oLocs').textContent = v.locs;
+  $('oDays').textContent = v.days;
+  $('oPrice').textContent = usd(v.price,2);
+  $('oCard').textContent = Math.round(v.card*100)+'%';
+  $('ordersHint').textContent = TYPES[bizType].hint;
+
+  const alt = ALTS[selected];
+  const altName = alt.name.replace('*','');
+  const gapStripe = r4(fee(alt,v.price) - fee(OURS,v.price));
+  const altPenaltyMo = gapStripe*vol + alt.mo;            // what the alternative costs extra per month
+  const moSave = altPenaltyMo - (pricing==='sub' ? SUB_MO : 0);   // steady-state monthly keep
+  const yrSave = moSave*12;
+  const ahead5 = altPenaltyMo*60 - ourCostCum(60);
+  const pbMonths = pricing==='sub' ? 0 : (altPenaltyMo>0 ? OWN_ONE/altPenaltyMo : Infinity);
+
+  countUp($('save'), yrSave);
+  $('saveLbl').textContent = '💰 kept/yr vs ' + altName;
+  if (pricing==='sub'){
+    $('payback').textContent = moSave > 0 ? 'Day 1' : '—';
+    $('paybackLbl').textContent = '⏱ cheaper from your first sale';
+  } else {
+    $('payback').textContent = !isFinite(pbMonths) ? '—'
+        : pbMonths <= 24 ? Math.max(1,Math.round(pbMonths))+' mo'
+        : (pbMonths/12).toFixed(1)+' yrs';
+    $('paybackLbl').textContent = "⏱ until it's paid for itself";
+  }
+  countUp($('ahead'), ahead5);
+  $('aheadLbl').textContent = '📈 '+(ahead5>=0?'ahead':'behind')+' after 5 years';
+  $('sAheadCard').classList.toggle('neg', ahead5<0);
+  $('sPayCard').classList.toggle('neg', moSave<=0);
+  pop('payback');
+  $('mSave').textContent = usd(Math.max(yrSave,0))+'/yr';
+  $('mVs').textContent = altName;
+  $('mPb').textContent = $('payback').textContent;
+  const optTxt = pricing==='sub' ? 'Free month, then $39/mo' : 'Own it — $999 once';
+  $('ctaChoice').textContent = 'You’re looking at: ' + optTxt + ' · ' + TYPES[bizType].label;
+  $('ctaMail').href = 'mailto:menigottesman@gmail.com?subject=' +
+      encodeURIComponent('Margin POS for my ' + TYPES[bizType].label + ' — ' + optTxt) +
+      '&body=' + encodeURIComponent('Hi Meni — I run a ' + TYPES[bizType].label + ' and I’d like to start. (' + optTxt + ')');
+
+  const verdict = $('verdict');
+  const prevVerdict = verdict.textContent;
+  verdict.classList.remove('warn');
+  if (pricing==='sub'){
+    if (moSave > 0) verdict.textContent = 'Cheaper than '+altName+' from day one — and the first month is free. ✅';
+    else { verdict.textContent = 'At this volume the $39 flat beats '+altName+'’s percentages only as you grow — so the never-undersold guarantee applies: I price-beat them anyway.'; verdict.classList.add('warn'); }
+  } else {
+    if (pbMonths <= 3)       verdict.textContent = 'Pays for itself almost immediately vs '+altName+' — then it’s pure margin. ✅';
+    else if (pbMonths <= 12) verdict.textContent = 'Pays for itself in under a year vs '+altName+', then it’s pure margin. ✅';
+    else if (pbMonths <= 36) verdict.textContent = 'Pays for itself in '+(pbMonths/12).toFixed(1)+' years vs '+altName+' — the monthly plan may suit you better.';
+    else { verdict.textContent = 'At this volume, pick the monthly plan instead — $0 down and the guarantee does the work.'; verdict.classList.add('warn'); }
+  }
+  if (verdict.textContent !== prevVerdict && !reduceMotion){
+    verdict.classList.remove('swap'); void verdict.offsetWidth; verdict.classList.add('swap');
+  }
+
+  // table
+  const tb = $('tbl').querySelector('tbody');
+  tb.innerHTML = '';
+  const mk = (cells, cls) => { const tr=document.createElement('tr'); if(cls)tr.className=cls;
+    cells.forEach(c=>{const td=document.createElement('td'); td.textContent=c; tr.appendChild(td);}); tb.appendChild(tr); };
+  mk(['Margin POS — '+(pricing==='sub'?'$39/mo flat':'$999 once'), usd(fee(OURS,v.price),2),
+      pricing==='sub' ? '$39 (month 1 free)' : '$0', '—'], 'you');
+  for (const k of Object.keys(ALTS)){
+    const a = ALTS[k];
+    const g = r4(fee(a,v.price)-fee(OURS,v.price));
+    const sv = (g*vol + a.mo - (pricing==='sub'?SUB_MO:0))*12;
+    mk([a.name, usd(fee(a,v.price),2), a.mo?usd(a.mo,2):'$0', usd(sv)]);
+  }
+
+  // full math
+  let h = '<h4>Step 1 — your volume</h4>'+
+    '<p><b>Card sales/month</b> = '+v.orders+' orders × '+v.locs+' location'+(v.locs>1?'s':'')+' × '+v.days+' days × '+Math.round(v.card*100)+'% card = <code>'+Math.round(vol)+'</code></p>'+
+    '<h4>Step 2 — what each option skims per '+usd(v.price,2)+' sale</h4>'+
+    '<p><b>Margin POS</b> = 2.7% × '+usd(v.price,2)+' + 5¢ = <code>'+usd(fee(OURS,v.price),2)+'</code> (Stripe’s standard rate — zero markup added)</p>';
+  for (const k of Object.keys(ALTS)){
+    const a = ALTS[k];
+    h += '<p><b>'+a.name+'</b> = '+(a.pct*100).toFixed(a.pct===0.0309?2:1)+'% × '+usd(v.price,2)+' + '+Math.round(a.fix*100)+'¢ = <code>'+usd(fee(a,v.price),2)+'</code>'+(a.mo?' plus '+usd(a.mo,2)+'/mo':'')+'</p>';
+  }
+  h += '<h4>Step 3 — what you keep per year vs each (gap × '+Math.round(vol)+' sales × 12'+(pricing==='sub'?' − $39/mo':'')+')</h4>';
+  for (const k of Object.keys(ALTS)){
+    const a = ALTS[k];
+    const g = r4(fee(a,v.price)-fee(OURS,v.price));
+    const m = g*vol + a.mo - (pricing==='sub'?SUB_MO:0);
+    h += '<p><b>vs '+a.name+'</b>: ('+usd(fee(a,v.price),2)+' − '+usd(fee(OURS,v.price),2)+') × '+Math.round(vol)+(a.mo?' + '+usd(a.mo,2)+'/mo':'')+(pricing==='sub'?' − $39':'')+' = <code>'+usd(m,2)+'/mo</code> → <b>'+usd(m*12)+'/yr</b></p>';
+  }
+  if (pricing==='sub'){
+    h += '<h4>Step 4 — 5-year position vs '+alt.name+'</h4>'+
+      '<p>'+usd(altPenaltyMo,2)+'/mo avoided × 60 − $39 × 59 months (first month free) = <code>'+usd(ahead5)+'</code></p>';
+  } else {
+    h += '<h4>Step 4 — payback &amp; 5-year position vs '+alt.name+'</h4>'+
+      '<p><b>Payback</b> = $999 ÷ '+usd(altPenaltyMo,2)+'/mo = <code>'+(isFinite(pbMonths)?pbMonths.toFixed(1)+' months':'—')+'</code></p>'+
+      '<p><b>After 5 years</b> = '+usd(altPenaltyMo,2)+' × 60 − $999 = <code>'+usd(ahead5)+'</code></p>';
+  }
+  h += '<h4>The guarantee, precisely</h4>'+
+    '<p>If the published all-in cost of a mainstream alternative at YOUR slider settings ever totals less than mine, my price drops to beat it. That clause is written into the service agreement — the math on this page can’t quietly go stale.</p>';
+  $('math').innerHTML = h;
+
+  drawChart(vol, v.price);
+}
+
+function drawChart(vol, price){
+  const W = Math.max(320, $('chart').clientWidth || 640);
+  $('chart').setAttribute('viewBox', '0 0 '+W+' 300');
+  const H=300, L=58, R=12, T=16, B=34;
+  const months=[...Array(61).keys()];
+  const stripeCum = m => fee(OURS,price)*vol*m;
+  const ourPts = months.map(m=>ourCostCum(m)+stripeCum(m));
+  const series = [{k:'ours', color:'var(--money)', w:3.4, pts:ourPts}];
+  for (const k of Object.keys(ALTS)){
+    const a=ALTS[k];
+    series.push({k, color:a.color, w:selected===k?2.4:1.4, faint:selected!==k,
+                 pts:months.map(m=>a.mo*m + fee(a,price)*vol*m)});
+  }
+  const raw = Math.max(...series.flatMap(s=>s.pts))*1.06 || 1;
+  const p10 = Math.pow(10, Math.floor(Math.log10(raw/4)));
+  const n4 = (raw/4)/p10;
+  const stepY = (n4<=1?1:n4<=2?2:n4<=2.5?2.5:n4<=5?5:10)*p10;
+  const maxY = stepY*4;
+  const X = m => L + (W-L-R)*m/60;
+  const Y = c => T + (H-T-B)*(1 - c/maxY);
+  let g = '';
+  for (let i=0;i<=4;i++){
+    const cy = stepY*i;
+    g += `<line x1="${L}" y1="${Y(cy)}" x2="${W-R}" y2="${Y(cy)}" stroke="${i===0?'#d9c9b2':'#efe5d4'}" stroke-width="${i===0?1.5:1}"/>`;
+    g += `<text x="${L-7}" y="${Y(cy)+4}" font-size="11" fill="#8a7665" text-anchor="end">${cy>=1000?'$'+(cy/1000).toFixed(cy%1000?1:0)+'k':'$'+Math.round(cy)}</text>`;
+  }
+  for (let yr=0;yr<=5;yr++)
+    g += `<text x="${X(yr*12)}" y="${H-12}" font-size="11" fill="#8a7665" text-anchor="middle">${yr===0?'now':'yr '+yr}</text>`;
+  const area = ourPts.map((c,m)=>(m?'L':'M')+X(m).toFixed(1)+','+Y(c).toFixed(1)).join('')
+             + `L${X(60).toFixed(1)},${Y(0)}L${X(0).toFixed(1)},${Y(0)}Z`;
+  g += `<path d="${area}" fill="rgba(46,125,50,0.07)" stroke="none"/>`;
+  const order = series.filter(s=>s.faint).concat(series.filter(s=>!s.faint&&s.k!=='ours'), series.filter(s=>s.k==='ours'));
+  for (const s of order){
+    const d = s.pts.map((c,m)=>(m?'L':'M')+X(m).toFixed(1)+','+Y(c).toFixed(1)).join('');
+    g += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${s.w}" opacity="${s.faint?0.3:1}" stroke-linecap="round"/>`;
+  }
+  const ours = ourPts, alt = series.find(s=>s.k===selected).pts;
+  let cross = -1;
+  for (let m=1;m<=60;m++) if (ours[m] <= alt[m]) { cross=m; break; }
+  if (cross > 0){
+    const label = cross===1 ? 'cheaper from day one' : `cheaper from month ${cross}`;
+    g += `<circle cx="${X(cross)}" cy="${Y(ours[cross])}" r="5.5" fill="var(--money)"/>`;
+    const tx = Math.min(X(cross)+10, W-170);
+    g += `<text x="${tx}" y="${Math.max(Y(ours[cross])-20, 14)}" font-size="12" font-weight="700" fill="var(--money)" stroke="#fffdf8" stroke-width="3.5" paint-order="stroke">${label}</text>`;
+  }
+  const gap5 = alt[60]-ours[60];
+  if (gap5 > 0 && (Y(ours[60])-Y(alt[60])) > 30){
+    const bx = X(60)-2;
+    g += `<line x1="${bx}" y1="${Y(alt[60])+6}" x2="${bx}" y2="${Y(ours[60])-6}" stroke="var(--money)" stroke-width="2" stroke-dasharray="3 4"/>`;
+    g += `<text x="${bx-8}" y="${(Y(alt[60])+Y(ours[60]))/2+4}" font-size="13" font-weight="800" fill="var(--money)" text-anchor="end" stroke="#fffdf8" stroke-width="4" paint-order="stroke">${usd(gap5)} stays in your pocket</text>`;
+  }
+  $('chart').innerHTML = g;
+  if (!chartDrawn && !reduceMotion){
+    chartDrawn = true;
+    $('chart').querySelectorAll('path[stroke]:not([stroke="none"])').forEach((p,i)=>{
+      const len = p.getTotalLength();
+      p.style.strokeDasharray = len; p.style.strokeDashoffset = len;
+      requestAnimationFrame(()=>{
+        p.style.transition = 'stroke-dashoffset .9s ease '+(i*0.12)+'s';
+        p.style.strokeDashoffset = 0;
+        setTimeout(()=>{ p.style.strokeDasharray=''; p.style.strokeDashoffset=''; p.style.transition=''; }, 1500+i*120);
+      });
+    });
+  }
+}
+
+function applyType(t){
+  bizType = t;
+  document.querySelectorAll('#types .type').forEach(x=>x.classList.toggle('active', x.dataset.t===t));
+  const d = TYPES[t];
+  $('orders').value=d.orders; $('locs').value=d.locs; $('days').value=d.days;
+  $('price').value=d.price; $('card').value=d.card;
+  ['orders','locs','days','price','card'].forEach(id=>paintSlider($(id)));
+  recalc();
+}
+document.querySelectorAll('#types .type').forEach(b=>b.addEventListener('click',()=>applyType(b.dataset.t)));
+document.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.opt').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); pricing=b.dataset.opt; recalc();
+}));
+document.querySelectorAll('#chips .chip').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#chips .chip').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); selected=b.dataset.alt; recalc();
+}));
+let statsSeen = false;
+['orders','locs','days','price','card'].forEach(id=>{
+  const el = $(id);
+  el.addEventListener('input', ()=>{ statsSeen = true; paintSlider(el); recalc(); });
+  paintSlider(el);
+});
+let rT;
+window.addEventListener('resize', ()=>{ clearTimeout(rT); rT = setTimeout(recalc, 150); });
+
+if (!reduceMotion){
+  const io = new IntersectionObserver(es=>es.forEach(e=>{
+    if (e.isIntersecting){
+      e.target.classList.remove('pre');
+      setTimeout(()=>{ e.target.style.transitionDelay=''; }, 700);
+      io.unobserve(e.target);
+    }
+  }), {threshold:.08});
+  document.querySelectorAll('.card, .cta').forEach((c,i)=>{
+    c.classList.add('pre'); c.style.transitionDelay = (Math.min(i,4)*0.07)+'s'; io.observe(c);
+  });
+  setTimeout(()=>{ document.querySelectorAll('.card.pre,.cta.pre').forEach(c=>c.classList.remove('pre')); }, 2200);
+}
+const statsEl = document.querySelector('.stats');
+new IntersectionObserver(es=>{
+  if (es[0].isIntersecting) statsSeen = true;
+  $('miniBar').classList.toggle('show', statsSeen && !es[0].isIntersecting);
+}, {threshold:0}).observe(statsEl);
+$('miniBar').addEventListener('click', ()=>statsEl.scrollIntoView({behavior:'smooth', block:'center'}));
+
+// personalized pitch links: ?for=Maria&type=foodtruck
+const qp = new URLSearchParams(location.search);
+const who = (qp.get('for')||'').replace(/[^\p{L}\p{N} .'-]/gu,'').trim().slice(0,30);
+if (who) $('heroH1').textContent = who + " — let's do business.";
+const t0 = qp.get('type');
+if (t0 && TYPES[t0]) applyType(t0); else recalc();
+</script>
+</body>
+</html>
